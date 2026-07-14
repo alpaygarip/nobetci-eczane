@@ -1,0 +1,8 @@
+name = "nobetci-eczane"
+main = "worker/worker.js"
+compatibility_date = "2026-07-01"
+
+# dist/ = build.sh'nin ürettiği, API anahtarı temizlenmiş yayın kopyası
+[assets]
+directory = "./dist"
+binding = "ASSETS"

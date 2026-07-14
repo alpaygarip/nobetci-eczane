@@ -1,0 +1,14 @@
+# Yayın kopyası (build.sh üretir)
+dist/
+
+# Yerel geliştirme sırları — ASLA paylaşmayın
+.dev.vars
+js/config.local.js
+
+# Vercel yerel bağlantı dosyaları
+.vercel/
+
+# Araç dosyaları
+node_modules/
+.wrangler/
+.claude/
