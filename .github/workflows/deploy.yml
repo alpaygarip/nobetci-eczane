@@ -1,0 +1,25 @@
+# Her push'ta uygulamayı Vercel'e yayınlar.
+# Tek gereksinim: depo ayarlarında VERCEL_TOKEN adlı secret
+# (Settings → Secrets and variables → Actions → New repository secret).
+# Token, vercel.com/account/settings/tokens adresinden oluşturulur.
+
+name: Vercel'e yayınla
+
+on:
+  push:
+    branches: [main]
+
+env:
+  VERCEL_ORG_ID: team_kJhPvPGXqORJXUYOYI1anEVN
+  VERCEL_PROJECT_ID: prj_CVfCa0I9P5OgVg5RzKJHZoP9W96R
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Vercel'e üretim dağıtımı
+        run: npx vercel@latest deploy --prod --yes --token="$VERCEL_TOKEN"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
