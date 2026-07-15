@@ -150,6 +150,23 @@ svg { display: block; }
   gap: 9px;
 }
 
+/* Dil seçici */
+.lang-select {
+  appearance: none;
+  -webkit-appearance: none;
+  height: 38px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, .3);
+  background: rgba(255, 255, 255, .12);
+  color: var(--on-navy);
+  font: 700 13px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  padding: 0 13px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.lang-select option { color: #14202e; background: #fff; }
+
 /* Büyük yazı modu düğmesi */
 .text-size-btn {
   width: 38px;
@@ -207,7 +224,7 @@ body.big-text { zoom: 1.15; }
   display: flex;
   align-items: center;
   gap: 14px;
-  text-align: left;
+  text-align: start;
   font: inherit;
   color: #fff;
   background: var(--brand);
@@ -264,7 +281,7 @@ body.big-text { zoom: 1.15; }
 .em-close {
   position: absolute;
   top: 14px;
-  right: 14px;
+  inset-inline-end: 14px;
   width: 38px; height: 38px;
   border: none;
   border-radius: 50%;
@@ -289,7 +306,7 @@ body.big-text { zoom: 1.15; }
   font-weight: 800;
   letter-spacing: -.015em;
   line-height: 1.3;
-  padding-right: 36px;
+  padding-inline-end: 36px;
 }
 
 .em-badge-row { margin-top: 8px; }
@@ -440,7 +457,7 @@ body.big-text { zoom: 1.15; }
 .select-wrap::after {
   content: "";
   position: absolute;
-  right: 15px;
+  inset-inline-end: 15px;
   top: 50%;
   width: 8px; height: 8px;
   border-right: 2px solid var(--text-soft);
@@ -459,7 +476,8 @@ select {
   background: var(--surface-2);
   border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 13px 38px 13px 14px;
+  padding-block: 13px;
+  padding-inline: 14px 38px;
   cursor: pointer;
   transition: border-color .15s;
 }
@@ -537,7 +555,7 @@ a:focus-visible {
 
 .search-icon {
   position: absolute;
-  left: 15px;
+  inset-inline-start: 15px;
   top: 50%;
   transform: translateY(-50%);
   color: var(--text-soft);
@@ -562,7 +580,7 @@ input[type="search"]::-webkit-search-cancel-button { display: none; }
 
 .clear-btn {
   position: absolute;
-  right: 9px;
+  inset-inline-end: 9px;
   top: 50%;
   transform: translateY(-50%);
   width: 32px; height: 32px;
@@ -657,6 +675,7 @@ input[type="search"]::-webkit-search-cancel-button { display: none; }
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
   z-index: 1; /* başlık bandının altında kalsın */
+  direction: ltr; /* Leaflet kontrolleri RTL'de bozulmasın */
 }
 
 .map-hint {

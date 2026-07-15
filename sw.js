@@ -10,13 +10,14 @@
    Kabuk dosyaları değiştiğinde CACHE sürümünü artırın.
    ============================================================ */
 
-const CACHE = "eczane-kabuk-v6";
+const CACHE = "eczane-kabuk-v7";
 
 const SHELL = [
   ".",
   "index.html",
   "css/style.css",
   "js/data.js",
+  "js/i18n.js",
   "js/app.js",
   "manifest.webmanifest",
   "icons/icon-192.png",

@@ -134,10 +134,10 @@ function updateHomeBtn() {
   const home = loadHome();
   if (home) {
     els.homeBtn.hidden = false;
-    els.homeBtn.innerHTML = `${ICONS.home} Evim kayıtlı — mesafeler otomatik · <u>kaldır</u>`;
+    els.homeBtn.innerHTML = `${ICONS.home} ${t("home.saved")}`;
   } else if (state.userLocation) {
     els.homeBtn.hidden = false;
-    els.homeBtn.innerHTML = `${ICONS.home} Bu konumu Evim olarak kaydet`;
+    els.homeBtn.innerHTML = `${ICONS.home} ${t("home.save")}`;
   } else {
     els.homeBtn.hidden = true;
   }
@@ -152,12 +152,13 @@ function onHomeBtnClick() {
       state.userLocation = null;
       if (state.sort === "distance") setSort("district");
       els.sortDistanceBtn.disabled = true;
-      els.locateBtnText.textContent = "Konumumu kullan — en yakını göster";
+      state.locateStatus = "default";
+      renderLocateBtn();
     }
-    showToast("Evim kaydı kaldırıldı");
+    showToast(t("toast.homeRemoved"));
   } else if (state.userLocation) {
     localStorage.setItem(HOME_KEY, JSON.stringify(state.userLocation));
-    showToast("Evim kaydedildi — mesafeler artık hep hazır");
+    showToast(t("toast.homeSaved"));
   }
   updateHomeBtn();
   render();
@@ -195,25 +196,25 @@ function dutyStatus(now = new Date()) {
 function formatLeft(until, now = new Date()) {
   const mins = Math.max(1, Math.round((until - now) / 60000));
   const h = Math.floor(mins / 60), m = mins % 60;
-  return h > 0 ? `${h} sa ${m} dk` : `${m} dk`;
+  return h > 0 ? t("time.hm", { h, m }) : t("time.m", { m });
 }
 
 function renderDate() {
   const now = new Date();
-  els.dateLine.textContent = now.toLocaleDateString("tr-TR", {
+  els.dateLine.textContent = now.toLocaleDateString(currentLocale(), {
     day: "numeric", month: "long", weekday: "long",
   });
 
   const st = dutyStatus(now);
   if (st.allDay) {
-    els.dutyLine.innerHTML = "<b>Nöbet aktif</b> · pazar günü gün boyu nöbetçiler hizmette";
-    els.liveBadgeText.textContent = "Nöbet aktif";
+    els.dutyLine.innerHTML = t("duty.sunday");
+    els.liveBadgeText.textContent = t("badge.active");
   } else if (st.active) {
-    els.dutyLine.innerHTML = `<b>Nöbet aktif</b> · bitişine ${formatLeft(st.until, now)}`;
-    els.liveBadgeText.textContent = "Nöbet aktif";
+    els.dutyLine.innerHTML = t("duty.active", { left: formatLeft(st.until, now) });
+    els.liveBadgeText.textContent = t("badge.active");
   } else {
-    els.dutyLine.textContent = `Nöbet ${DUTY_HOURS.start}'da başlar · ${formatLeft(st.until, now)} kaldı`;
-    els.liveBadgeText.textContent = "Bu akşamın listesi";
+    els.dutyLine.textContent = t("duty.day", { start: DUTY_HOURS.start, left: formatLeft(st.until, now) });
+    els.liveBadgeText.textContent = t("badge.evening");
   }
 }
 
@@ -285,7 +286,7 @@ const ICONS = {
 
 function render() {
   if (state.loading) {
-    els.resultCount.textContent = "Nöbet listesi yükleniyor…";
+    els.resultCount.textContent = t("loading");
     els.emptyState.hidden = true;
     els.errorState.hidden = true;
     els.list.innerHTML = skeletonHtml().repeat(4);
@@ -305,7 +306,7 @@ function render() {
   // Sonuç sayısı
   const where = state.district || state.city;
   els.resultCount.innerHTML = items.length
-    ? `<b>${items.length} nöbetçi eczane</b> bulundu — ${escapeHtml(where)}`
+    ? t("count.found", { n: items.length, where: escapeHtml(where) })
     : "";
 
   els.errorState.hidden = true;
@@ -318,15 +319,15 @@ function render() {
     els.sourceLine.hidden = true;
   } else if (!hasLiveData()) {
     els.sourceLine.hidden = false;
-    els.sourceLine.innerHTML = `${ICONS.check} Örnek (demo) veri gösteriliyor`;
+    els.sourceLine.innerHTML = `${ICONS.check} ${t("source.demo")}`;
   } else {
     els.sourceLine.hidden = false;
     const saat = info.time
       ? info.time.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })
       : null;
     els.sourceLine.innerHTML =
-      `${ICONS.check} Kaynak: İl Eczacı Odası günlük nöbet listesi` +
-      (saat ? ` · Güncellendi ${saat}` : "");
+      `${ICONS.check} ${t("source.live")}` +
+      (saat ? ` · ${t("source.updated", { time: saat })}` : "");
   }
 
   const mapActive = state.view === "map" && items.length > 0;
@@ -349,7 +350,7 @@ function skeletonHtml() {
 function cardHtml(p, i) {
   const distance =
     p._distance != null
-      ? ` <span class="distance-chip">· ${formatDistance(p._distance)} uzakta</span>`
+      ? ` <span class="distance-chip">· ${t("distance.away", { d: formatDistance(p._distance) })}</span>`
       : "";
 
   // Son 10 hane: baştaki 0 veya 90 ön eklerinden bağımsız çalışır
@@ -359,7 +360,7 @@ function cardHtml(p, i) {
   <article class="card">
     <div class="card-top">
       <h3>${escapeHtml(p.name)}</h3>
-      <span class="badge-open">Nöbetçi · Açık</span>
+      <span class="badge-open">${t("card.open")}</span>
     </div>
     <div class="card-meta">
       <div class="row">
@@ -378,12 +379,12 @@ function cardHtml(p, i) {
     ${p.note ? `<div class="card-note"><span class="icon">${ICONS.info}</span><span>${escapeHtml(p.note)}</span></div>` : ""}
     <div class="card-actions">
       <a class="action-btn action-call" href="${telHref}">
-        ${ICONS.phoneSm} Ara
+        ${ICONS.phoneSm} ${t("card.call")}
       </a>
       <a class="action-btn action-directions" href="${mapsUrl(p)}" target="_blank" rel="noopener">
-        ${ICONS.nav} Yol Tarifi
+        ${ICONS.nav} ${t("card.directions")}
       </a>
-      <button class="action-btn action-share" type="button" data-share="${i}" aria-label="Eczane bilgisini paylaş" title="Paylaş">
+      <button class="action-btn action-share" type="button" data-share="${i}" aria-label="${escapeHtml(t("card.share"))}" title="${escapeHtml(t("em.share"))}">
         ${ICONS.share}
       </button>
     </div>
@@ -414,8 +415,8 @@ function popupHtml(p) {
     <p>${escapeHtml(p.address)} — <b>${escapeHtml(p.district)}</b></p>
     <p class="pp-phone">${escapeHtml(p.phone)}</p>
     <div class="pp-actions">
-      <a class="pp-call" href="${telHref}">Ara</a>
-      <a class="pp-dir" href="${mapsUrl(p)}" target="_blank" rel="noopener">Yol Tarifi</a>
+      <a class="pp-call" href="${telHref}">${t("card.call")}</a>
+      <a class="pp-dir" href="${mapsUrl(p)}" target="_blank" rel="noopener">${t("card.directions")}</a>
     </div>
   </div>`;
 }
@@ -484,11 +485,14 @@ function showToast(msg) {
 }
 
 async function sharePharmacy(p) {
-  const text =
-    `${p.name} — Nöbetçi Eczane\n` +
-    `${p.address} (${p.district}/${state.city})\n` +
-    `Tel: ${p.phone}\n` +
-    `Harita: ${mapsUrl(p)}`;
+  const text = t("share.text", {
+    name: p.name,
+    address: p.address,
+    district: p.district,
+    city: state.city,
+    phone: p.phone,
+    url: mapsUrl(p),
+  });
 
   if (navigator.share) {
     try { await navigator.share({ title: p.name, text }); } catch { /* vazgeçildi */ }
@@ -496,9 +500,9 @@ async function sharePharmacy(p) {
   }
   try {
     await navigator.clipboard.writeText(text);
-    showToast("Eczane bilgisi panoya kopyalandı");
+    showToast(t("toast.copied"));
   } catch {
-    showToast("Paylaşım bu tarayıcıda desteklenmiyor");
+    showToast(t("toast.noShare"));
   }
 }
 
@@ -513,10 +517,10 @@ function emMessage(html) {
 function openEmergency() {
   els.emergencyOverlay.hidden = false;
   document.body.style.overflow = "hidden";
-  els.emBody.innerHTML = emMessage("Konumunuz alınıyor…");
+  els.emBody.innerHTML = emMessage(t("em.locating"));
 
   if (!navigator.geolocation) {
-    els.emBody.innerHTML = emMessage("Tarayıcınız konum özelliğini desteklemiyor.<br>Aşağıdaki listeden ilçenizi seçerek arayabilirsiniz.");
+    els.emBody.innerHTML = emMessage(t("em.noGeo"));
     return;
   }
 
@@ -529,12 +533,12 @@ function openEmergency() {
       // Kullanıcı farklı bir ildeyse önce doğru ilin listesini çek
       const best = nearestCityTo(state.userLocation);
       if (best && best.city !== state.city) {
-        els.emBody.innerHTML = emMessage(`<b>${escapeHtml(best.city)}</b> nöbet listesi alınıyor…`);
+        els.emBody.innerHTML = emMessage(t("em.fetching", { city: escapeHtml(best.city) }));
         els.citySelect.value = best.city;
         await loadCity(best.city);
       }
       if (state.error) {
-        els.emBody.innerHTML = emMessage("Nöbet listesine ulaşılamadı.<br>Bağlantınızı kontrol edip tekrar deneyin.");
+        els.emBody.innerHTML = emMessage(t("em.netFail"));
         return;
       }
 
@@ -544,7 +548,7 @@ function openEmergency() {
         .sort((a, b) => a._distance - b._distance);
 
       if (!withCoords.length) {
-        els.emBody.innerHTML = emMessage("Bu il için konum bilgili eczane kaydı yok.<br>Listeden ilçenize göre arayabilirsiniz.");
+        els.emBody.innerHTML = emMessage(t("em.noCoords"));
         return;
       }
 
@@ -553,7 +557,7 @@ function openEmergency() {
       renderEmergency();
     },
     () => {
-      els.emBody.innerHTML = emMessage("<b>Konum izni verilmedi.</b><br>Tarayıcı ayarlarından izin verip tekrar deneyin ya da aşağıdaki listeden ilçenizi seçin.");
+      els.emBody.innerHTML = emMessage(t("em.denied"));
     },
     { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
   );
@@ -563,27 +567,27 @@ function renderEmergency() {
   const p = emState.list[emState.index];
   const telHref = "tel:+90" + p.phone.replace(/\D/g, "").slice(-10);
   const est = travelEstimates(p._distance);
-  const rank = emState.index === 0 ? "Size en yakın nöbetçi" : `${emState.index + 1}. en yakın nöbetçi`;
-  const walkChip = est.walkMin <= 40 ? `<span>~${est.walkMin} dk yürüme</span>` : "";
+  const rank = emState.index === 0 ? t("em.rank1") : t("em.rankN", { n: emState.index + 1 });
+  const walkChip = est.walkMin <= 40 ? `<span>${t("est.walk", { m: est.walkMin })}</span>` : "";
 
   els.emBody.innerHTML = `
     <div class="em-rank">${rank}</div>
     <div class="em-name">${escapeHtml(p.name)}</div>
-    <div class="em-badge-row"><span class="badge-open">Nöbetçi · Açık</span></div>
+    <div class="em-badge-row"><span class="badge-open">${t("card.open")}</span></div>
     <div class="em-travel">
-      <span>${formatDistance(p._distance)} uzakta</span>
+      <span>${t("distance.away", { d: formatDistance(p._distance) })}</span>
       ${walkChip}
-      <span>~${est.carMin} dk araçla</span>
+      <span>${t("est.car", { m: est.carMin })}</span>
     </div>
     <div class="em-meta">
       ${escapeHtml(p.address)} — <b>${escapeHtml(p.district)}</b><br>
       <span class="phone-number">${escapeHtml(p.phone)}</span>
     </div>
-    <a class="em-call" href="${telHref}">${ICONS.phoneSm} Hemen Ara</a>
-    <a class="em-directions" href="${mapsUrl(p)}" target="_blank" rel="noopener">${ICONS.nav} Yol Tarifi Al</a>
+    <a class="em-call" href="${telHref}">${ICONS.phoneSm} ${t("em.call")}</a>
+    <a class="em-directions" href="${mapsUrl(p)}" target="_blank" rel="noopener">${ICONS.nav} ${t("em.dir")}</a>
     <div class="em-secondary-row">
-      <button class="em-ghost-btn" type="button" data-em-action="share">${ICONS.share} Paylaş</button>
-      <button class="em-ghost-btn" type="button" data-em-action="next">Sonraki en yakın ${ICONS.next}</button>
+      <button class="em-ghost-btn" type="button" data-em-action="share">${ICONS.share} ${t("em.share")}</button>
+      <button class="em-ghost-btn" type="button" data-em-action="next">${t("em.next")} ${ICONS.next}</button>
     </div>`;
 }
 
@@ -606,7 +610,7 @@ function populateDistricts() {
     new Intl.Collator("tr-TR").compare
   );
   els.districtSelect.innerHTML =
-    `<option value="">Tüm ilçeler</option>` +
+    `<option value="">${escapeHtml(t("district.all"))}</option>` +
     districts
       .map((d) => `<option value="${escapeHtml(d)}">${escapeHtml(d)}</option>`)
       .join("");
@@ -626,9 +630,7 @@ async function loadCity(city) {
     state.pharmacies = [];
     state.error = err;
     els.errorMessage.innerHTML =
-      "Nöbet listesine şu an ulaşılamıyor.<br>İnternet bağlantınızı kontrol edip tekrar deneyin.<br><small>(" +
-      escapeHtml(err.message) +
-      ")</small>";
+      t("error.body") + "<br><small>(" + escapeHtml(err.message) + ")</small>";
   }
 
   state.loading = false;
@@ -671,12 +673,12 @@ function checkCityMismatch() {
   const hasSuggestion = suggestion && suggestion.city !== state.city;
 
   els.locationWarningText.textContent = hasSuggestion
-    ? `Konumunuz ${state.city} eczanelerinden uzakta görünüyor (en yakını ~${Math.round(nearestKm)} km). ${suggestion.city} ilinde olabilirsiniz.`
-    : `Konumunuz seçili ildeki eczanelerden uzakta görünüyor (en yakını ~${Math.round(nearestKm)} km). Yukarıdan ilinizi kontrol edin.`;
+    ? t("warn.far", { city: state.city, km: Math.round(nearestKm), suggest: suggestion.city })
+    : t("warn.farPlain", { km: Math.round(nearestKm) });
 
   els.switchCityBtn.hidden = !hasSuggestion;
   if (hasSuggestion) {
-    els.switchCityBtn.textContent = `${suggestion.city} iline geç`;
+    els.switchCityBtn.textContent = t("warn.switch", { city: suggestion.city });
     els.switchCityBtn.onclick = () => {
       els.citySelect.value = suggestion.city;
       loadCity(suggestion.city);
@@ -702,12 +704,13 @@ function setSort(sort) {
 
 function requestLocation() {
   if (!navigator.geolocation) {
-    els.locateBtnText.textContent = "Tarayıcınız konum desteklemiyor";
+    state.locateStatus = "unsupported";
+    renderLocateBtn();
     return;
   }
 
   els.locateBtn.disabled = true;
-  els.locateBtnText.textContent = "Konum alınıyor…";
+  els.locateBtnText.textContent = t("locate.locating");
 
   navigator.geolocation.getCurrentPosition(
     (pos) => {
@@ -716,8 +719,9 @@ function requestLocation() {
         lng: pos.coords.longitude,
       };
       state.usingHome = false;
+      state.locateStatus = "acquired";
       els.locateBtn.disabled = false;
-      els.locateBtnText.textContent = "Konum alındı ✓ — en yakın önce";
+      renderLocateBtn();
       els.sortDistanceBtn.disabled = false;
       els.sortDistanceBtn.title = "";
       updateHomeBtn();
@@ -725,12 +729,24 @@ function requestLocation() {
       checkCityMismatch();
     },
     () => {
+      state.locateStatus = "denied";
       els.locateBtn.disabled = false;
-      els.locateBtnText.textContent =
-        "Konum izni verilmedi — tekrar deneyin";
+      renderLocateBtn();
     },
     { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
   );
+}
+
+// Konum düğmesi metni durumdan türetilir (dil değişince yeniden çizilir)
+function renderLocateBtn() {
+  const map = {
+    default: "locate.default",
+    acquired: "locate.acquired",
+    home: "locate.home",
+    denied: "locate.denied",
+    unsupported: "locate.unsupported",
+  };
+  els.locateBtnText.textContent = t(map[state.locateStatus || "default"]);
 }
 
 /* ---------- Olay bağlama ---------- */
@@ -764,6 +780,11 @@ function bindEvents() {
   els.homeBtn.addEventListener("click", onHomeBtnClick);
   els.textSizeBtn.addEventListener("click", () => {
     applyBigText(!document.body.classList.contains("big-text"));
+  });
+
+  // Dil seçimi
+  document.getElementById("langSelect").addEventListener("change", (e) => {
+    setLang(e.target.value);
   });
 
   // Acil mod
@@ -819,6 +840,8 @@ function bindEvents() {
 /* ---------- Başlat ---------- */
 
 async function init() {
+  applyStaticI18n();
+  document.getElementById("langSelect").value = LANG;
   renderDate();
   setInterval(renderDate, 60000); // geri sayım her dakika tazelenir
 
@@ -832,8 +855,9 @@ async function init() {
     state.usingHome = true;
     els.sortDistanceBtn.disabled = false;
     els.sortDistanceBtn.title = "";
-    els.locateBtnText.textContent = "Mesafeler Evim'e göre — canlı konum için dokunun";
+    state.locateStatus = "home";
   }
+  renderLocateBtn();
   updateHomeBtn();
 
   // Son ziyaretteki il/ilçe seçimini geri yükle
@@ -845,13 +869,7 @@ async function init() {
   populateCities();
   bindEvents();
 
-  if (hasLiveData()) {
-    els.dataSourceNote.innerHTML =
-      "Veriler CollectAPI üzerinden canlı alınmaktadır ve gün içinde güncellenir. Gitmeden önce eczaneyi arayarak teyit edebilirsiniz. Acil durumlar için <b>112</b>.";
-  } else {
-    els.dataSourceNote.innerHTML =
-      "Şu an <b>örnek (demo) veri</b> gösterilmektedir. Canlı veri için <code>js/data.js</code> dosyasına CollectAPI anahtarınızı ekleyin (ayrıntılar README dosyasında). Acil durumlar için <b>112</b>.";
-  }
+  els.dataSourceNote.innerHTML = hasLiveData() ? t("footer.live") : t("footer.demo");
 
   await loadCity(state.city);
 
@@ -865,6 +883,18 @@ async function init() {
       render();
     }
   }
+}
+
+// Dil değişince tüm dinamik metinleri yeniden çiz (i18n.js çağırır)
+function refreshAfterLangChange() {
+  renderDate();
+  renderLocateBtn();
+  updateHomeBtn();
+  populateDistricts();
+  els.dataSourceNote.innerHTML = hasLiveData() ? t("footer.live") : t("footer.demo");
+  render();
+  if (!els.locationWarning.hidden) checkCityMismatch();
+  if (!els.emergencyOverlay.hidden && emState.list.length) renderEmergency();
 }
 
 init();

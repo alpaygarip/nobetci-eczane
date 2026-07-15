@@ -22,12 +22,17 @@
       <div class="brand">
         <span class="brand-logo" aria-hidden="true">E</span>
         <div class="brand-text">
-          <h1>Nöbetçi Eczane</h1>
+          <h1 data-i18n="app.title">Nöbetçi Eczane</h1>
           <p id="dateLine" class="date-line"><!-- JS dolduruyor --></p>
           <p id="dutyLine" class="duty-line"><!-- JS: nöbet durumu --></p>
         </div>
       </div>
       <div class="header-actions">
+        <select id="langSelect" class="lang-select" aria-label="Dil / Language / اللغة">
+          <option value="tr">TR</option>
+          <option value="en">EN</option>
+          <option value="ar">ع</option>
+        </select>
         <button id="textSizeBtn" class="text-size-btn" type="button" aria-pressed="false" aria-label="Büyük yazı modu" title="Büyük yazı modu">A<span>A</span></button>
         <span class="live-badge">
           <span class="live-dot" aria-hidden="true"></span> <span id="liveBadgeText">Bugünün listesi</span>
@@ -44,8 +49,8 @@
         <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 7v10M7 12h10"/></svg>
       </span>
       <span class="emergency-btn-text">
-        <b>En Yakın Nöbetçiyi Bul</b>
-        <small>Tek dokunuş — konumunuza en yakın açık eczane</small>
+        <b data-i18n="em.btnTitle">En Yakın Nöbetçiyi Bul</b>
+        <small data-i18n="em.btnSub">Tek dokunuş — konumunuza en yakın açık eczane</small>
       </span>
       <svg class="emergency-btn-arrow" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
     </button>
@@ -54,13 +59,13 @@
     <section class="panel" aria-label="Konum seçimi">
       <div class="select-row">
         <div class="field">
-          <label for="citySelect">İl</label>
+          <label for="citySelect" data-i18n="label.city">İl</label>
           <div class="select-wrap">
             <select id="citySelect" autocomplete="address-level1"></select>
           </div>
         </div>
         <div class="field">
-          <label for="districtSelect">İlçe</label>
+          <label for="districtSelect" data-i18n="label.district">İlçe</label>
           <div class="select-wrap">
             <select id="districtSelect">
               <option value="">Tüm ilçeler</option>
@@ -84,24 +89,24 @@
         <svg class="search-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
           <circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>
         </svg>
-        <input type="search" id="searchInput" placeholder="Eczane veya mahalle ara…" autocomplete="off" aria-label="Eczane veya mahalle ara">
+        <input type="search" id="searchInput" placeholder="Eczane veya mahalle ara…" data-i18n-placeholder="search.placeholder" autocomplete="off" aria-label="Eczane veya mahalle ara">
         <button id="clearSearch" class="clear-btn" type="button" aria-label="Aramayı temizle" hidden>&times;</button>
       </div>
 
       <div class="controls-row">
         <div class="sort-group" role="group" aria-label="Sıralama">
-          <button class="sort-btn is-active" data-sort="district" type="button">İlçeye göre</button>
-          <button class="sort-btn" data-sort="name" type="button">A–Z</button>
-          <button class="sort-btn" data-sort="distance" type="button" id="sortDistanceBtn" disabled title="Önce “Konumumu kullan”a dokunun">En yakın</button>
+          <button class="sort-btn is-active" data-sort="district" type="button" data-i18n="sort.district">İlçeye göre</button>
+          <button class="sort-btn" data-sort="name" type="button" data-i18n="sort.name">A–Z</button>
+          <button class="sort-btn" data-sort="distance" type="button" id="sortDistanceBtn" disabled data-i18n="sort.distance">En yakın</button>
         </div>
         <div class="view-toggle" role="group" aria-label="Görünüm">
           <button id="viewListBtn" class="view-btn is-active" type="button" aria-pressed="true" title="Liste görünümü">
             <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
-            Liste
+            <span data-i18n="view.list">Liste</span>
           </button>
           <button id="viewMapBtn" class="view-btn" type="button" aria-pressed="false" title="Harita görünümü">
             <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 3-6 2v16l6-2 6 2 6-2V3l-6 2-6-2Z"/><path d="M9 3v16M15 5v16"/></svg>
-            Harita
+            <span data-i18n="view.map">Harita</span>
           </button>
         </div>
       </div>
@@ -116,7 +121,7 @@
         <span id="locationWarningText"></span>
         <div class="notice-actions">
           <button id="switchCityBtn" class="notice-btn" type="button"></button>
-          <button id="dismissWarning" class="notice-btn ghost" type="button">Kapat</button>
+          <button id="dismissWarning" class="notice-btn ghost" type="button" data-i18n="warn.close">Kapat</button>
         </div>
       </div>
     </div>
@@ -133,7 +138,7 @@
     <!-- HARİTA -->
     <section id="mapView" class="map-view" aria-label="Nöbetçi eczane haritası" hidden>
       <div id="map"></div>
-      <p class="map-hint">İşarete dokunun: eczane bilgisi, arama ve yol tarifi açılır.</p>
+      <p class="map-hint" data-i18n="map.hint">İşarete dokunun: eczane bilgisi, arama ve yol tarifi açılır.</p>
     </section>
 
     <!-- BOŞ DURUM -->
@@ -141,9 +146,9 @@
       <div class="empty-icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       </div>
-      <h2>Sonuç bulunamadı</h2>
-      <p>Aramanızla eşleşen nöbetçi eczane yok.<br>Yazımı kontrol edin veya ilçe filtresini <b>“Tüm ilçeler”</b> yapın.</p>
-      <button id="resetFilters" class="reset-btn" type="button">Filtreleri temizle</button>
+      <h2 data-i18n="empty.title">Sonuç bulunamadı</h2>
+      <p data-i18n-html="empty.body">Aramanızla eşleşen nöbetçi eczane yok.<br>Yazımı kontrol edin veya ilçe filtresini <b>“Tüm ilçeler”</b> yapın.</p>
+      <button id="resetFilters" class="reset-btn" type="button" data-i18n="empty.reset">Filtreleri temizle</button>
     </div>
 
     <!-- HATA DURUMU -->
@@ -151,16 +156,16 @@
       <div class="empty-icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4M12 17h.01"/></svg>
       </div>
-      <h2>Liste yüklenemedi</h2>
-      <p id="errorMessage">Nöbet listesine şu an ulaşılamıyor.<br>İnternet bağlantınızı kontrol edip tekrar deneyin.</p>
-      <button id="retryBtn" class="reset-btn" type="button">Tekrar dene</button>
+      <h2 data-i18n="error.title">Liste yüklenemedi</h2>
+      <p id="errorMessage" data-i18n-html="error.body">Nöbet listesine şu an ulaşılamıyor.<br>İnternet bağlantınızı kontrol edip tekrar deneyin.</p>
+      <button id="retryBtn" class="reset-btn" type="button" data-i18n="error.retry">Tekrar dene</button>
     </div>
 
   </main>
 
   <footer class="app-footer">
     <div class="container">
-      <p><b>Nöbet saatleri:</b> Eczaneler akşam kapanışından ertesi sabah açılışa kadar (genellikle 19:00 – 08:30) nöbetçidir; listedeki eczaneler bugün 24 saat hizmet verir.</p>
+      <p data-i18n-html="footer.hours"><b>Nöbet saatleri:</b> Eczaneler akşam kapanışından ertesi sabah açılışa kadar (genellikle 19:00 – 08:30) nöbetçidir; listedeki eczaneler bugün 24 saat hizmet verir.</p>
       <p class="muted" id="dataSourceNote">Veriler İl Eczacı Odalarının günlük nöbet listelerinden derlenir. Gitmeden önce eczaneyi arayarak teyit edebilirsiniz. Acil durumlar için <b>112</b>.</p>
     </div>
   </footer>
@@ -180,6 +185,7 @@
   <script src="js/data.js"></script>
   <!-- Yerel geliştirme ayarı: depoda/yayında bulunmaz, 404 zararsızdır -->
   <script src="js/config.local.js"></script>
+  <script src="js/i18n.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
