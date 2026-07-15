@@ -511,7 +511,15 @@ input[type="search"]::-webkit-search-cancel-button { display: none; }
   cursor: pointer;
 }
 
+.controls-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .sort-group {
+  flex: 1;
+  min-width: 0;
   display: flex;
   gap: 9px;
   overflow-x: auto;
@@ -544,6 +552,113 @@ input[type="search"]::-webkit-search-cancel-button { display: none; }
 }
 
 .sort-btn:disabled { opacity: .45; cursor: not-allowed; }
+
+/* ---------- Liste/Harita geçişi ---------- */
+.view-toggle {
+  flex: none;
+  display: flex;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
+  padding: 3px;
+}
+
+.view-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-soft);
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  padding: 7px 13px;
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.view-btn.is-active {
+  color: #fff;
+  background: var(--primary);
+}
+
+/* ---------- Harita görünümü ---------- */
+.map-view { margin-top: 4px; padding-bottom: 28px; }
+
+#map {
+  height: min(62dvh, 560px);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  z-index: 1; /* başlık bandının altında kalsın */
+}
+
+.map-hint {
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--text-soft);
+  text-align: center;
+}
+
+/* Marka uyumlu eczane iğnesi */
+.pin-eczane {
+  width: 32px; height: 32px;
+  border-radius: 50% 50% 50% 4px;
+  background: var(--brand);
+  color: #fff;
+  font: 800 16px/32px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  text-align: center;
+  transform: rotate(0deg);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .35);
+  border: 2px solid #fff;
+}
+
+.pin-user {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--primary);
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 30%, transparent), 0 2px 6px rgba(0,0,0,.3);
+}
+
+/* Açılır pencere (popup) markaya uydur */
+.leaflet-popup-content-wrapper {
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .25);
+}
+
+.leaflet-popup-content { margin: 14px 16px; font: inherit; }
+
+.map-popup h4 { font-size: 15px; font-weight: 700; margin-bottom: 4px; color: #14202e; }
+.map-popup p { font-size: 13px; color: #5b6b7d; margin-bottom: 3px; line-height: 1.45; }
+.map-popup .pp-phone { font-variant-numeric: tabular-nums; font-weight: 600; color: #14202e; }
+
+.map-popup .pp-actions {
+  display: flex;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.map-popup .pp-actions a {
+  flex: 1;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.map-popup .pp-call { color: #fff; background: var(--open); }
+.map-popup .pp-dir { color: var(--primary); border: 1.5px solid #d9e1ea; }
+
+/* Koyu temada harita karoları yumuşak ters çevrilir */
+@media (prefers-color-scheme: dark) {
+  .leaflet-tile { filter: invert(1) hue-rotate(180deg) brightness(.92) contrast(.88) saturate(.7); }
+  .leaflet-container { background: #0d1523; }
+}
 
 /* ---------- Konum/il uyuşmazlığı uyarısı ---------- */
 .notice {

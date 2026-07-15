@@ -10,7 +10,7 @@
    Kabuk dosyaları değiştiğinde CACHE sürümünü artırın.
    ============================================================ */
 
-const CACHE = "eczane-kabuk-v4";
+const CACHE = "eczane-kabuk-v5";
 
 const SHELL = [
   ".",
@@ -22,6 +22,8 @@ const SHELL = [
   "icons/icon-192.png",
   "icons/icon-512.png",
   "icons/apple-touch-icon.png",
+  "vendor/leaflet/leaflet.css",
+  "vendor/leaflet/leaflet.js",
 ];
 
 self.addEventListener("install", (e) => {

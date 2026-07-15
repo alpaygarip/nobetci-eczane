@@ -10,6 +10,7 @@
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
   <link rel="stylesheet" href="css/style.css">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23dc2626'/%3E%3Ctext x='50' y='72' font-size='62' font-family='Arial' font-weight='bold' fill='white' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
 </head>
@@ -83,10 +84,22 @@
         <button id="clearSearch" class="clear-btn" type="button" aria-label="Aramayı temizle" hidden>&times;</button>
       </div>
 
-      <div class="sort-group" role="group" aria-label="Sıralama">
-        <button class="sort-btn is-active" data-sort="district" type="button">İlçeye göre</button>
-        <button class="sort-btn" data-sort="name" type="button">A–Z</button>
-        <button class="sort-btn" data-sort="distance" type="button" id="sortDistanceBtn" disabled title="Önce “Konumumu kullan”a dokunun">En yakın</button>
+      <div class="controls-row">
+        <div class="sort-group" role="group" aria-label="Sıralama">
+          <button class="sort-btn is-active" data-sort="district" type="button">İlçeye göre</button>
+          <button class="sort-btn" data-sort="name" type="button">A–Z</button>
+          <button class="sort-btn" data-sort="distance" type="button" id="sortDistanceBtn" disabled title="Önce “Konumumu kullan”a dokunun">En yakın</button>
+        </div>
+        <div class="view-toggle" role="group" aria-label="Görünüm">
+          <button id="viewListBtn" class="view-btn is-active" type="button" aria-pressed="true" title="Liste görünümü">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+            Liste
+          </button>
+          <button id="viewMapBtn" class="view-btn" type="button" aria-pressed="false" title="Harita görünümü">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 3-6 2v16l6-2 6 2 6-2V3l-6 2-6-2Z"/><path d="M9 3v16M15 5v16"/></svg>
+            Harita
+          </button>
+        </div>
       </div>
     </section>
 
@@ -109,6 +122,12 @@
 
     <!-- LİSTE -->
     <section id="pharmacyList" class="pharmacy-list" aria-label="Nöbetçi eczane listesi"></section>
+
+    <!-- HARİTA -->
+    <section id="mapView" class="map-view" aria-label="Nöbetçi eczane haritası" hidden>
+      <div id="map"></div>
+      <p class="map-hint">İşarete dokunun: eczane bilgisi, arama ve yol tarifi açılır.</p>
+    </section>
 
     <!-- BOŞ DURUM -->
     <div id="emptyState" class="empty-state" hidden>
@@ -150,6 +169,7 @@
   <!-- KISA BİLDİRİM -->
   <div id="toast" class="toast" role="status" hidden></div>
 
+  <script src="vendor/leaflet/leaflet.js"></script>
   <script src="js/data.js"></script>
   <!-- Yerel geliştirme ayarı: depoda/yayında bulunmaz, 404 zararsızdır -->
   <script src="js/config.local.js"></script>

@@ -31,6 +31,9 @@ const els = {
   emBody: document.getElementById("emBody"),
   emClose: document.getElementById("emClose"),
   toast: document.getElementById("toast"),
+  mapView: document.getElementById("mapView"),
+  viewListBtn: document.getElementById("viewListBtn"),
+  viewMapBtn: document.getElementById("viewMapBtn"),
 };
 
 const state = {
@@ -38,6 +41,7 @@ const state = {
   district: "",
   query: "",
   sort: "district",          // district | name | distance
+  view: "list",              // list | map
   userLocation: null,        // { lat, lng }
   pharmacies: [],
   loading: false,
@@ -247,7 +251,12 @@ function render() {
   els.errorState.hidden = true;
   els.emptyState.hidden = items.length > 0;
   state._visible = items; // paylaş düğmeleri dizindeki sıraya başvurur
-  els.list.innerHTML = items.map(cardHtml).join("");
+
+  const mapActive = state.view === "map" && items.length > 0;
+  els.mapView.hidden = !mapActive;
+  els.list.hidden = mapActive;
+  els.list.innerHTML = mapActive ? "" : items.map(cardHtml).join("");
+  if (mapActive) refreshMap(items);
 }
 
 function skeletonHtml() {
@@ -302,6 +311,88 @@ function cardHtml(p, i) {
       </button>
     </div>
   </article>`;
+}
+
+/* ---------- Harita görünümü (Leaflet + OpenStreetMap) ---------- */
+
+let map = null;
+let markerLayer = null;
+let userMarker = null;
+
+function initMap() {
+  map = L.map("map", { zoomControl: true, attributionControl: true });
+  map.setView([39.0, 35.3], 6); // Türkiye geneli başlangıç; fitBounds hemen daraltır
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> katkıcıları',
+  }).addTo(map);
+  markerLayer = L.layerGroup().addTo(map);
+}
+
+function popupHtml(p) {
+  const telHref = "tel:+90" + p.phone.replace(/\D/g, "").slice(-10);
+  return `
+  <div class="map-popup">
+    <h4>${escapeHtml(p.name)}</h4>
+    <p>${escapeHtml(p.address)} — <b>${escapeHtml(p.district)}</b></p>
+    <p class="pp-phone">${escapeHtml(p.phone)}</p>
+    <div class="pp-actions">
+      <a class="pp-call" href="${telHref}">Ara</a>
+      <a class="pp-dir" href="${mapsUrl(p)}" target="_blank" rel="noopener">Yol Tarifi</a>
+    </div>
+  </div>`;
+}
+
+function refreshMap(items) {
+  if (!map) initMap();
+  markerLayer.clearLayers();
+
+  const pinIcon = L.divIcon({
+    className: "",
+    html: '<div class="pin-eczane">E</div>',
+    iconSize: [32, 32],
+    iconAnchor: [16, 30],
+    popupAnchor: [0, -26],
+  });
+
+  const points = [];
+  for (const p of items) {
+    if (p.lat == null) continue;
+    points.push([p.lat, p.lng]);
+    L.marker([p.lat, p.lng], { icon: pinIcon, title: p.name })
+      .bindPopup(popupHtml(p), { maxWidth: 260 })
+      .addTo(markerLayer);
+  }
+
+  // Kullanıcı konumu (varsa) mavi nokta olarak gösterilir
+  if (userMarker) { userMarker.remove(); userMarker = null; }
+  if (state.userLocation) {
+    userMarker = L.marker([state.userLocation.lat, state.userLocation.lng], {
+      icon: L.divIcon({ className: "", html: '<div class="pin-user"></div>', iconSize: [18, 18], iconAnchor: [9, 9] }),
+      title: "Konumunuz",
+      interactive: false,
+    }).addTo(map);
+    points.push([state.userLocation.lat, state.userLocation.lng]);
+  }
+
+  // Kap yeni görünür olduysa boyut bir sonraki döngüde oturur;
+  // rAF bazen erken kalıyor, kısa gecikme güvenilir.
+  setTimeout(() => {
+    map.invalidateSize();
+    if (points.length) {
+      map.fitBounds(L.latLngBounds(points), { padding: [36, 36], maxZoom: 15 });
+    }
+  }, 60);
+}
+
+function setView(view) {
+  state.view = view;
+  const isMap = view === "map";
+  els.viewListBtn.classList.toggle("is-active", !isMap);
+  els.viewMapBtn.classList.toggle("is-active", isMap);
+  els.viewListBtn.setAttribute("aria-pressed", String(!isMap));
+  els.viewMapBtn.setAttribute("aria-pressed", String(isMap));
+  render();
 }
 
 /* ---------- Paylaşım ---------- */
@@ -585,6 +676,10 @@ function bindEvents() {
     const p = state._visible?.[Number(btn.dataset.share)];
     if (p) sharePharmacy(p);
   });
+
+  // Liste/Harita geçişi
+  els.viewListBtn.addEventListener("click", () => setView("list"));
+  els.viewMapBtn.addEventListener("click", () => setView("map"));
 
   // Acil mod
   els.emergencyBtn.addEventListener("click", openEmergency);

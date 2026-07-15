@@ -7,7 +7,7 @@ cd "$(dirname "$0")"
 
 rm -rf dist
 mkdir -p dist
-cp -R index.html css js icons manifest.webmanifest sw.js dist/
+cp -R index.html css js icons vendor manifest.webmanifest sw.js dist/
 rm -f dist/js/config.local.js
 
 if grep -q 'collectApiKey: ""' dist/js/data.js \
