@@ -143,6 +143,36 @@ svg { display: block; }
 
 .duty-line b { color: #7ee2a8; font-weight: 700; }
 
+.header-actions {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+/* Büyük yazı modu düğmesi */
+.text-size-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, .3);
+  background: rgba(255, 255, 255, .12);
+  color: var(--on-navy);
+  font: 700 15px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  cursor: pointer;
+}
+
+.text-size-btn span { font-size: 11px; }
+
+.text-size-btn[aria-pressed="true"] {
+  background: #fff;
+  color: var(--navy);
+  border-color: #fff;
+}
+
+/* Büyük yazı modu: tüm arayüzü %15 ölçekler */
+body.big-text { zoom: 1.15; }
+
 .live-badge {
   flex: none;
   display: inline-flex;
@@ -465,6 +495,40 @@ a:focus-visible {
 
 .locate-btn:hover { background: var(--primary-strong); }
 .locate-btn:disabled { opacity: .65; cursor: wait; }
+
+/* Evim kaydı düğmesi */
+.home-btn {
+  width: 100%;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--primary);
+  background: transparent;
+  border: 1.5px dashed var(--border);
+  border-radius: var(--radius-sm);
+  padding: 11px;
+  cursor: pointer;
+  transition: border-color .15s;
+}
+
+.home-btn:hover { border-color: var(--primary); }
+
+/* ---------- Kaynak / güncelleme damgası ---------- */
+.source-line {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: -4px 2px 12px;
+  font-size: 12.5px;
+  color: var(--text-soft);
+}
+
+.source-line svg { flex: none; color: var(--open); }
 
 /* ---------- Arama + sıralama ---------- */
 .toolbar { margin-top: 14px; display: flex; flex-direction: column; gap: 12px; }

@@ -182,16 +182,23 @@ function cacheKey(city) {
 function readCache(city) {
   try {
     const raw = localStorage.getItem(cacheKey(city));
-    return raw ? JSON.parse(raw) : null;
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    // Eski biçim (yalın dizi) ile geriye dönük uyumluluk
+    return Array.isArray(parsed) ? { t: null, data: parsed } : parsed;
   } catch { return null; }
 }
 
 function writeCache(city, data) {
   try {
     purgeOldCache();
-    localStorage.setItem(cacheKey(city), JSON.stringify(data));
+    localStorage.setItem(cacheKey(city), JSON.stringify({ t: Date.now(), data }));
   } catch {}
 }
+
+/* Son başarılı veri alımının zamanı — arayüzdeki güven damgası için */
+let lastFetchInfo = { time: null, cached: false };
+function getLastFetchInfo() { return lastFetchInfo; }
 
 /* Önceki günlerin listelerini temizler */
 function purgeOldCache() {
@@ -216,11 +223,15 @@ async function fetchDutyPharmacies(city) {
   if (!hasLiveData()) {
     // Demo mod: ağ gecikmesini taklit et (yükleme durumu görünür olsun)
     await new Promise((r) => setTimeout(r, 150));
+    lastFetchInfo = { time: new Date(), cached: false };
     return DEMO_DATA[city] || [];
   }
 
   const cached = readCache(city);
-  if (cached) return cached;
+  if (cached) {
+    lastFetchInfo = { time: cached.t ? new Date(cached.t) : null, cached: true };
+    return cached.data;
+  }
 
   // Proxy varsa oradan (anahtarsız), yoksa CollectAPI'den doğrudan çek
   const useProxy = CONFIG.proxyUrl.trim().length > 0;
@@ -251,5 +262,6 @@ async function fetchDutyPharmacies(city) {
 
   const pharmacies = json.result.map(mapCollectApiRecord);
   writeCache(city, pharmacies);
+  lastFetchInfo = { time: new Date(), cached: false };
   return pharmacies;
 }

@@ -34,6 +34,9 @@ const els = {
   mapView: document.getElementById("mapView"),
   viewListBtn: document.getElementById("viewListBtn"),
   viewMapBtn: document.getElementById("viewMapBtn"),
+  homeBtn: document.getElementById("homeBtn"),
+  sourceLine: document.getElementById("sourceLine"),
+  textSizeBtn: document.getElementById("textSizeBtn"),
 };
 
 const state = {
@@ -113,6 +116,61 @@ function loadPrefs() {
   } catch {
     return {};
   }
+}
+
+/* ---------- "Evim" konumu ---------- */
+
+const HOME_KEY = "eczane:home";
+
+function loadHome() {
+  try {
+    const h = JSON.parse(localStorage.getItem(HOME_KEY));
+    return h && Number.isFinite(h.lat) && Number.isFinite(h.lng) ? h : null;
+  } catch { return null; }
+}
+
+// usingHome: mesafelerin referansı canlı GPS değil, kayıtlı Evim
+function updateHomeBtn() {
+  const home = loadHome();
+  if (home) {
+    els.homeBtn.hidden = false;
+    els.homeBtn.innerHTML = `${ICONS.home} Evim kayıtlı — mesafeler otomatik · <u>kaldır</u>`;
+  } else if (state.userLocation) {
+    els.homeBtn.hidden = false;
+    els.homeBtn.innerHTML = `${ICONS.home} Bu konumu Evim olarak kaydet`;
+  } else {
+    els.homeBtn.hidden = true;
+  }
+}
+
+function onHomeBtnClick() {
+  const home = loadHome();
+  if (home) {
+    localStorage.removeItem(HOME_KEY);
+    if (state.usingHome) {
+      state.usingHome = false;
+      state.userLocation = null;
+      if (state.sort === "distance") setSort("district");
+      els.sortDistanceBtn.disabled = true;
+      els.locateBtnText.textContent = "Konumumu kullan — en yakını göster";
+    }
+    showToast("Evim kaydı kaldırıldı");
+  } else if (state.userLocation) {
+    localStorage.setItem(HOME_KEY, JSON.stringify(state.userLocation));
+    showToast("Evim kaydedildi — mesafeler artık hep hazır");
+  }
+  updateHomeBtn();
+  render();
+}
+
+/* ---------- Büyük yazı modu ---------- */
+
+const BIGTEXT_KEY = "eczane:bigtext";
+
+function applyBigText(on) {
+  document.body.classList.toggle("big-text", on);
+  els.textSizeBtn.setAttribute("aria-pressed", String(on));
+  try { localStorage.setItem(BIGTEXT_KEY, on ? "1" : ""); } catch {}
 }
 
 /* ---------- Başlıktaki tarih ve canlı nöbet durumu ---------- */
@@ -219,6 +277,8 @@ const ICONS = {
   phoneSm: `<svg ${ICON_ATTRS} width="16" height="16"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92Z"/></svg>`,
   share: `<svg ${ICON_ATTRS}><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 3.9M15.4 6.6 8.6 10.5"/></svg>`,
   next: `<svg ${ICON_ATTRS} width="16" height="16"><path d="m9 18 6-6-6-6"/></svg>`,
+  home: `<svg ${ICON_ATTRS} width="16" height="16"><path d="m3 10 9-7 9 7v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/><path d="M9 22V12h6v10"/></svg>`,
+  check: `<svg ${ICON_ATTRS} width="14" height="14"><path d="M20 6 9 17l-5-5"/></svg>`,
 };
 
 /* ---------- Görselleştirme ---------- */
@@ -251,6 +311,23 @@ function render() {
   els.errorState.hidden = true;
   els.emptyState.hidden = items.length > 0;
   state._visible = items; // paylaş düğmeleri dizindeki sıraya başvurur
+
+  // Kaynak / güncelleme damgası
+  const info = getLastFetchInfo();
+  if (!items.length) {
+    els.sourceLine.hidden = true;
+  } else if (!hasLiveData()) {
+    els.sourceLine.hidden = false;
+    els.sourceLine.innerHTML = `${ICONS.check} Örnek (demo) veri gösteriliyor`;
+  } else {
+    els.sourceLine.hidden = false;
+    const saat = info.time
+      ? info.time.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })
+      : null;
+    els.sourceLine.innerHTML =
+      `${ICONS.check} Kaynak: İl Eczacı Odası günlük nöbet listesi` +
+      (saat ? ` · Güncellendi ${saat}` : "");
+  }
 
   const mapActive = state.view === "map" && items.length > 0;
   els.mapView.hidden = !mapActive;
@@ -638,10 +715,12 @@ function requestLocation() {
         lat: pos.coords.latitude,
         lng: pos.coords.longitude,
       };
+      state.usingHome = false;
       els.locateBtn.disabled = false;
       els.locateBtnText.textContent = "Konum alındı ✓ — en yakın önce";
       els.sortDistanceBtn.disabled = false;
       els.sortDistanceBtn.title = "";
+      updateHomeBtn();
       setSort("distance");
       checkCityMismatch();
     },
@@ -680,6 +759,12 @@ function bindEvents() {
   // Liste/Harita geçişi
   els.viewListBtn.addEventListener("click", () => setView("list"));
   els.viewMapBtn.addEventListener("click", () => setView("map"));
+
+  // Evim kaydı ve büyük yazı modu
+  els.homeBtn.addEventListener("click", onHomeBtnClick);
+  els.textSizeBtn.addEventListener("click", () => {
+    applyBigText(!document.body.classList.contains("big-text"));
+  });
 
   // Acil mod
   els.emergencyBtn.addEventListener("click", openEmergency);
@@ -736,6 +821,20 @@ function bindEvents() {
 async function init() {
   renderDate();
   setInterval(renderDate, 60000); // geri sayım her dakika tazelenir
+
+  // Büyük yazı tercihi
+  try { if (localStorage.getItem(BIGTEXT_KEY)) applyBigText(true); } catch {}
+
+  // Kayıtlı Evim varsa mesafeler GPS beklemeden hazır olsun
+  const home = loadHome();
+  if (home) {
+    state.userLocation = home;
+    state.usingHome = true;
+    els.sortDistanceBtn.disabled = false;
+    els.sortDistanceBtn.title = "";
+    els.locateBtnText.textContent = "Mesafeler Evim'e göre — canlı konum için dokunun";
+  }
+  updateHomeBtn();
 
   // Son ziyaretteki il/ilçe seçimini geri yükle
   const pref = loadPrefs();

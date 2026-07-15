@@ -27,9 +27,12 @@
           <p id="dutyLine" class="duty-line"><!-- JS: nöbet durumu --></p>
         </div>
       </div>
-      <span class="live-badge">
-        <span class="live-dot" aria-hidden="true"></span> <span id="liveBadgeText">Bugünün listesi</span>
-      </span>
+      <div class="header-actions">
+        <button id="textSizeBtn" class="text-size-btn" type="button" aria-pressed="false" aria-label="Büyük yazı modu" title="Büyük yazı modu">A<span>A</span></button>
+        <span class="live-badge">
+          <span class="live-dot" aria-hidden="true"></span> <span id="liveBadgeText">Bugünün listesi</span>
+        </span>
+      </div>
     </div>
   </header>
 
@@ -72,6 +75,7 @@
         </svg>
         <span id="locateBtnText">Konumumu kullan — en yakını göster</span>
       </button>
+      <button id="homeBtn" class="home-btn" type="button" hidden></button>
     </section>
 
     <!-- ARAMA + SIRALAMA -->
@@ -119,6 +123,9 @@
 
     <!-- SONUÇ SAYISI -->
     <p class="result-count" id="resultCount" role="status" aria-live="polite"></p>
+
+    <!-- KAYNAK / GÜNCELLEME DAMGASI -->
+    <p id="sourceLine" class="source-line" hidden></p>
 
     <!-- LİSTE -->
     <section id="pharmacyList" class="pharmacy-list" aria-label="Nöbetçi eczane listesi"></section>
