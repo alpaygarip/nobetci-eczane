@@ -12,3 +12,5 @@ js/config.local.js
 node_modules/
 .wrangler/
 .claude/
+.vercel
+.env*

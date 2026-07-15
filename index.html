@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="description" content="Şehrinizdeki nöbetçi eczaneleri saniyeler içinde bulun. İl ve ilçeye göre filtreleyin, en yakın eczaneyi görün, tek dokunuşla arayın veya yol tarifi alın.">
-  <meta name="theme-color" content="#0f766e">
+  <meta name="theme-color" content="#0b2e59">
   <title>Nöbetçi Eczane Bul</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -79,10 +79,15 @@
 
     <!-- KONUM / İL UYUŞMAZLIĞI UYARISI -->
     <div id="locationWarning" class="notice" role="alert" hidden>
-      <span id="locationWarningText"></span>
-      <div class="notice-actions">
-        <button id="switchCityBtn" class="notice-btn" type="button"></button>
-        <button id="dismissWarning" class="notice-btn ghost" type="button">Kapat</button>
+      <span class="notice-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4M12 17h.01"/></svg>
+      </span>
+      <div class="notice-body">
+        <span id="locationWarningText"></span>
+        <div class="notice-actions">
+          <button id="switchCityBtn" class="notice-btn" type="button"></button>
+          <button id="dismissWarning" class="notice-btn ghost" type="button">Kapat</button>
+        </div>
       </div>
     </div>
 
@@ -94,7 +99,9 @@
 
     <!-- BOŞ DURUM -->
     <div id="emptyState" class="empty-state" hidden>
-      <div class="empty-icon" aria-hidden="true">🔍</div>
+      <div class="empty-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      </div>
       <h2>Sonuç bulunamadı</h2>
       <p>Aramanızla eşleşen nöbetçi eczane yok.<br>Yazımı kontrol edin veya ilçe filtresini <b>“Tüm ilçeler”</b> yapın.</p>
       <button id="resetFilters" class="reset-btn" type="button">Filtreleri temizle</button>
@@ -102,7 +109,9 @@
 
     <!-- HATA DURUMU -->
     <div id="errorState" class="empty-state" hidden>
-      <div class="empty-icon" aria-hidden="true">⚠️</div>
+      <div class="empty-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4M12 17h.01"/></svg>
+      </div>
       <h2>Liste yüklenemedi</h2>
       <p id="errorMessage">Nöbet listesine şu an ulaşılamıyor.<br>İnternet bağlantınızı kontrol edip tekrar deneyin.</p>
       <button id="retryBtn" class="reset-btn" type="button">Tekrar dene</button>

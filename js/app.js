@@ -144,6 +144,20 @@ function getVisiblePharmacies() {
   return items;
 }
 
+/* ---------- SVG ikon seti (emoji yerine tutarlı çizgi ikonlar) ---------- */
+
+const ICON_ATTRS =
+  'viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
+
+const ICONS = {
+  pin: `<svg ${ICON_ATTRS}><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>`,
+  map: `<svg ${ICON_ATTRS}><path d="m9 3-6 2v16l6-2 6 2 6-2V3l-6 2-6-2Z"/><path d="M9 3v16M15 5v16"/></svg>`,
+  phone: `<svg ${ICON_ATTRS}><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92Z"/></svg>`,
+  info: `<svg ${ICON_ATTRS} width="16" height="16"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>`,
+  nav: `<svg ${ICON_ATTRS} width="16" height="16"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>`,
+  phoneSm: `<svg ${ICON_ATTRS} width="16" height="16"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92Z"/></svg>`,
+};
+
 /* ---------- Görselleştirme ---------- */
 
 function render() {
@@ -189,7 +203,7 @@ function skeletonHtml() {
 function cardHtml(p) {
   const distance =
     p._distance != null
-      ? `<span class="distance-chip">📍 ${formatDistance(p._distance)} uzakta</span>`
+      ? ` <span class="distance-chip">· ${formatDistance(p._distance)} uzakta</span>`
       : "";
 
   const mapsQuery = encodeURIComponent(
@@ -206,25 +220,25 @@ function cardHtml(p) {
     </div>
     <div class="card-meta">
       <div class="row">
-        <span class="icon" aria-hidden="true">🏙️</span>
-        <span><span class="district-tag">${escapeHtml(p.district)}</span>${p.neighborhood ? " / " + escapeHtml(p.neighborhood) : ""} ${distance}</span>
+        <span class="icon">${ICONS.pin}</span>
+        <span><span class="district-tag">${escapeHtml(p.district)}</span>${p.neighborhood ? " / " + escapeHtml(p.neighborhood) : ""}${distance}</span>
       </div>
       <div class="row">
-        <span class="icon" aria-hidden="true">🗺️</span>
+        <span class="icon">${ICONS.map}</span>
         <span>${escapeHtml(p.address)}</span>
       </div>
       <div class="row">
-        <span class="icon" aria-hidden="true">📞</span>
-        <span>${escapeHtml(p.phone)}</span>
+        <span class="icon">${ICONS.phone}</span>
+        <span class="phone-number">${escapeHtml(p.phone)}</span>
       </div>
     </div>
-    ${p.note ? `<div class="card-note">💡 ${escapeHtml(p.note)}</div>` : ""}
+    ${p.note ? `<div class="card-note"><span class="icon">${ICONS.info}</span><span>${escapeHtml(p.note)}</span></div>` : ""}
     <div class="card-actions">
       <a class="action-btn action-call" href="${telHref}">
-        📞 Ara
+        ${ICONS.phoneSm} Ara
       </a>
       <a class="action-btn action-directions" href="https://www.google.com/maps/search/?api=1&query=${mapsQuery}" target="_blank" rel="noopener">
-        🧭 Yol Tarifi
+        ${ICONS.nav} Yol Tarifi
       </a>
     </div>
   </article>`;
@@ -328,9 +342,11 @@ function checkCityMismatch() {
 
 function setSort(sort) {
   state.sort = sort;
-  els.sortBtns.forEach((b) =>
-    b.classList.toggle("is-active", b.dataset.sort === sort)
-  );
+  els.sortBtns.forEach((b) => {
+    const active = b.dataset.sort === sort;
+    b.classList.toggle("is-active", active);
+    b.setAttribute("aria-pressed", String(active));
+  });
   render();
 }
 
