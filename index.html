@@ -23,15 +23,28 @@
         <div class="brand-text">
           <h1>Nöbetçi Eczane</h1>
           <p id="dateLine" class="date-line"><!-- JS dolduruyor --></p>
+          <p id="dutyLine" class="duty-line"><!-- JS: nöbet durumu --></p>
         </div>
       </div>
-      <span class="live-badge" title="Nöbet listesi her gün 09:00'da güncellenir">
-        <span class="live-dot" aria-hidden="true"></span> Bugünün listesi
+      <span class="live-badge">
+        <span class="live-dot" aria-hidden="true"></span> <span id="liveBadgeText">Bugünün listesi</span>
       </span>
     </div>
   </header>
 
   <main class="container">
+
+    <!-- ACİL MOD -->
+    <button id="emergencyBtn" class="emergency-btn" type="button">
+      <span class="emergency-btn-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 7v10M7 12h10"/></svg>
+      </span>
+      <span class="emergency-btn-text">
+        <b>En Yakın Nöbetçiyi Bul</b>
+        <small>Tek dokunuş — konumunuza en yakın açık eczane</small>
+      </span>
+      <svg class="emergency-btn-arrow" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+    </button>
 
     <!-- KONUM SEÇİMİ -->
     <section class="panel" aria-label="Konum seçimi">
@@ -125,6 +138,17 @@
       <p class="muted" id="dataSourceNote">Veriler İl Eczacı Odalarının günlük nöbet listelerinden derlenir. Gitmeden önce eczaneyi arayarak teyit edebilirsiniz. Acil durumlar için <b>112</b>.</p>
     </div>
   </footer>
+
+  <!-- ACİL MOD KATMANI -->
+  <div id="emergencyOverlay" class="emergency-overlay" role="dialog" aria-modal="true" aria-label="En yakın nöbetçi eczane" hidden>
+    <div class="emergency-card">
+      <button id="emClose" class="em-close" type="button" aria-label="Kapat">&times;</button>
+      <div id="emBody"><!-- JS dolduruyor --></div>
+    </div>
+  </div>
+
+  <!-- KISA BİLDİRİM -->
+  <div id="toast" class="toast" role="status" hidden></div>
 
   <script src="js/data.js"></script>
   <!-- Yerel geliştirme ayarı: depoda/yayında bulunmaz, 404 zararsızdır -->

@@ -24,6 +24,13 @@ const els = {
   locationWarningText: document.getElementById("locationWarningText"),
   switchCityBtn: document.getElementById("switchCityBtn"),
   dismissWarning: document.getElementById("dismissWarning"),
+  dutyLine: document.getElementById("dutyLine"),
+  liveBadgeText: document.getElementById("liveBadgeText"),
+  emergencyBtn: document.getElementById("emergencyBtn"),
+  emergencyOverlay: document.getElementById("emergencyOverlay"),
+  emBody: document.getElementById("emBody"),
+  emClose: document.getElementById("emClose"),
+  toast: document.getElementById("toast"),
 };
 
 const state = {
@@ -61,6 +68,22 @@ function formatDistance(km) {
   return km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1)} km`;
 }
 
+// Kuş uçuşu mesafeden kaba yolculuk süresi (×1,3 güzergâh katsayısı)
+function travelEstimates(km) {
+  const route = km * 1.3;
+  return {
+    walkMin: Math.max(1, Math.round((route / 4.5) * 60)),  // 4,5 km/sa yürüme
+    carMin: Math.max(2, Math.round((route / 28) * 60)),    // ~28 km/sa şehir içi
+  };
+}
+
+function mapsUrl(p) {
+  return (
+    "https://www.google.com/maps/search/?api=1&query=" +
+    encodeURIComponent(`${p.name} ${p.address} ${p.district} ${state.city}`)
+  );
+}
+
 function escapeHtml(s) {
   return s.replace(/[&<>"']/g, (c) => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
@@ -88,14 +111,48 @@ function loadPrefs() {
   }
 }
 
-/* ---------- Başlıktaki tarih ---------- */
+/* ---------- Başlıktaki tarih ve canlı nöbet durumu ---------- */
+
+// Şu an nöbet penceresinde miyiz? (19:00 → ertesi 08:30; pazar tüm gün)
+function dutyStatus(now = new Date()) {
+  const [sh, sm] = DUTY_HOURS.start.split(":").map(Number);
+  const [eh, em] = DUTY_HOURS.end.split(":").map(Number);
+  const start = new Date(now); start.setHours(sh, sm, 0, 0);
+  const end = new Date(now); end.setHours(eh, em, 0, 0);
+
+  if (now < end) return { active: true, until: end };
+  if (now >= start) {
+    const until = new Date(end);
+    until.setDate(until.getDate() + 1);
+    return { active: true, until };
+  }
+  if (now.getDay() === 0) return { active: true, allDay: true };
+  return { active: false, until: start };
+}
+
+function formatLeft(until, now = new Date()) {
+  const mins = Math.max(1, Math.round((until - now) / 60000));
+  const h = Math.floor(mins / 60), m = mins % 60;
+  return h > 0 ? `${h} sa ${m} dk` : `${m} dk`;
+}
 
 function renderDate() {
   const now = new Date();
-  const dateStr = now.toLocaleDateString("tr-TR", {
+  els.dateLine.textContent = now.toLocaleDateString("tr-TR", {
     day: "numeric", month: "long", weekday: "long",
   });
-  els.dateLine.textContent = `${dateStr} · ${DUTY_HOURS.start}–${DUTY_HOURS.end}`;
+
+  const st = dutyStatus(now);
+  if (st.allDay) {
+    els.dutyLine.innerHTML = "<b>Nöbet aktif</b> · pazar günü gün boyu nöbetçiler hizmette";
+    els.liveBadgeText.textContent = "Nöbet aktif";
+  } else if (st.active) {
+    els.dutyLine.innerHTML = `<b>Nöbet aktif</b> · bitişine ${formatLeft(st.until, now)}`;
+    els.liveBadgeText.textContent = "Nöbet aktif";
+  } else {
+    els.dutyLine.textContent = `Nöbet ${DUTY_HOURS.start}'da başlar · ${formatLeft(st.until, now)} kaldı`;
+    els.liveBadgeText.textContent = "Bu akşamın listesi";
+  }
 }
 
 /* ---------- Filtre + sıralama boru hattı ---------- */
@@ -156,6 +213,8 @@ const ICONS = {
   info: `<svg ${ICON_ATTRS} width="16" height="16"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>`,
   nav: `<svg ${ICON_ATTRS} width="16" height="16"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>`,
   phoneSm: `<svg ${ICON_ATTRS} width="16" height="16"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92Z"/></svg>`,
+  share: `<svg ${ICON_ATTRS}><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 3.9M15.4 6.6 8.6 10.5"/></svg>`,
+  next: `<svg ${ICON_ATTRS} width="16" height="16"><path d="m9 18 6-6-6-6"/></svg>`,
 };
 
 /* ---------- Görselleştirme ---------- */
@@ -187,6 +246,7 @@ function render() {
 
   els.errorState.hidden = true;
   els.emptyState.hidden = items.length > 0;
+  state._visible = items; // paylaş düğmeleri dizindeki sıraya başvurur
   els.list.innerHTML = items.map(cardHtml).join("");
 }
 
@@ -200,15 +260,12 @@ function skeletonHtml() {
   </div>`;
 }
 
-function cardHtml(p) {
+function cardHtml(p, i) {
   const distance =
     p._distance != null
       ? ` <span class="distance-chip">· ${formatDistance(p._distance)} uzakta</span>`
       : "";
 
-  const mapsQuery = encodeURIComponent(
-    `${p.name} ${p.address} ${p.district} ${state.city}`
-  );
   // Son 10 hane: baştaki 0 veya 90 ön eklerinden bağımsız çalışır
   const telHref = "tel:+90" + p.phone.replace(/\D/g, "").slice(-10);
 
@@ -237,11 +294,134 @@ function cardHtml(p) {
       <a class="action-btn action-call" href="${telHref}">
         ${ICONS.phoneSm} Ara
       </a>
-      <a class="action-btn action-directions" href="https://www.google.com/maps/search/?api=1&query=${mapsQuery}" target="_blank" rel="noopener">
+      <a class="action-btn action-directions" href="${mapsUrl(p)}" target="_blank" rel="noopener">
         ${ICONS.nav} Yol Tarifi
       </a>
+      <button class="action-btn action-share" type="button" data-share="${i}" aria-label="Eczane bilgisini paylaş" title="Paylaş">
+        ${ICONS.share}
+      </button>
     </div>
   </article>`;
+}
+
+/* ---------- Paylaşım ---------- */
+
+let toastTimer = null;
+
+function showToast(msg) {
+  els.toast.textContent = msg;
+  els.toast.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { els.toast.hidden = true; }, 2600);
+}
+
+async function sharePharmacy(p) {
+  const text =
+    `${p.name} — Nöbetçi Eczane\n` +
+    `${p.address} (${p.district}/${state.city})\n` +
+    `Tel: ${p.phone}\n` +
+    `Harita: ${mapsUrl(p)}`;
+
+  if (navigator.share) {
+    try { await navigator.share({ title: p.name, text }); } catch { /* vazgeçildi */ }
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast("Eczane bilgisi panoya kopyalandı");
+  } catch {
+    showToast("Paylaşım bu tarayıcıda desteklenmiyor");
+  }
+}
+
+/* ---------- Acil mod ---------- */
+
+const emState = { list: [], index: 0 };
+
+function emMessage(html) {
+  return `<div class="em-message">${html}</div>`;
+}
+
+function openEmergency() {
+  els.emergencyOverlay.hidden = false;
+  document.body.style.overflow = "hidden";
+  els.emBody.innerHTML = emMessage("Konumunuz alınıyor…");
+
+  if (!navigator.geolocation) {
+    els.emBody.innerHTML = emMessage("Tarayıcınız konum özelliğini desteklemiyor.<br>Aşağıdaki listeden ilçenizi seçerek arayabilirsiniz.");
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => {
+      state.userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      els.sortDistanceBtn.disabled = false;
+      els.sortDistanceBtn.title = "";
+
+      // Kullanıcı farklı bir ildeyse önce doğru ilin listesini çek
+      const best = nearestCityTo(state.userLocation);
+      if (best && best.city !== state.city) {
+        els.emBody.innerHTML = emMessage(`<b>${escapeHtml(best.city)}</b> nöbet listesi alınıyor…`);
+        els.citySelect.value = best.city;
+        await loadCity(best.city);
+      }
+      if (state.error) {
+        els.emBody.innerHTML = emMessage("Nöbet listesine ulaşılamadı.<br>Bağlantınızı kontrol edip tekrar deneyin.");
+        return;
+      }
+
+      const withCoords = state.pharmacies
+        .filter((p) => p.lat != null)
+        .map((p) => ({ ...p, _distance: distanceKm(state.userLocation, p) }))
+        .sort((a, b) => a._distance - b._distance);
+
+      if (!withCoords.length) {
+        els.emBody.innerHTML = emMessage("Bu il için konum bilgili eczane kaydı yok.<br>Listeden ilçenize göre arayabilirsiniz.");
+        return;
+      }
+
+      emState.list = withCoords.slice(0, 5);
+      emState.index = 0;
+      renderEmergency();
+    },
+    () => {
+      els.emBody.innerHTML = emMessage("<b>Konum izni verilmedi.</b><br>Tarayıcı ayarlarından izin verip tekrar deneyin ya da aşağıdaki listeden ilçenizi seçin.");
+    },
+    { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
+  );
+}
+
+function renderEmergency() {
+  const p = emState.list[emState.index];
+  const telHref = "tel:+90" + p.phone.replace(/\D/g, "").slice(-10);
+  const est = travelEstimates(p._distance);
+  const rank = emState.index === 0 ? "Size en yakın nöbetçi" : `${emState.index + 1}. en yakın nöbetçi`;
+  const walkChip = est.walkMin <= 40 ? `<span>~${est.walkMin} dk yürüme</span>` : "";
+
+  els.emBody.innerHTML = `
+    <div class="em-rank">${rank}</div>
+    <div class="em-name">${escapeHtml(p.name)}</div>
+    <div class="em-badge-row"><span class="badge-open">Nöbetçi · Açık</span></div>
+    <div class="em-travel">
+      <span>${formatDistance(p._distance)} uzakta</span>
+      ${walkChip}
+      <span>~${est.carMin} dk araçla</span>
+    </div>
+    <div class="em-meta">
+      ${escapeHtml(p.address)} — <b>${escapeHtml(p.district)}</b><br>
+      <span class="phone-number">${escapeHtml(p.phone)}</span>
+    </div>
+    <a class="em-call" href="${telHref}">${ICONS.phoneSm} Hemen Ara</a>
+    <a class="em-directions" href="${mapsUrl(p)}" target="_blank" rel="noopener">${ICONS.nav} Yol Tarifi Al</a>
+    <div class="em-secondary-row">
+      <button class="em-ghost-btn" type="button" data-em-action="share">${ICONS.share} Paylaş</button>
+      <button class="em-ghost-btn" type="button" data-em-action="next">Sonraki en yakın ${ICONS.next}</button>
+    </div>`;
+}
+
+function closeEmergency() {
+  els.emergencyOverlay.hidden = true;
+  document.body.style.overflow = "";
 }
 
 /* ---------- İl / ilçe seçimleri ---------- */
@@ -398,6 +578,32 @@ function bindEvents() {
     els.locationWarning.hidden = true;
   });
 
+  // Kart paylaş düğmeleri (liste her çizimde yenilendiği için temsilci dinleyici)
+  els.list.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-share]");
+    if (!btn) return;
+    const p = state._visible?.[Number(btn.dataset.share)];
+    if (p) sharePharmacy(p);
+  });
+
+  // Acil mod
+  els.emergencyBtn.addEventListener("click", openEmergency);
+  els.emClose.addEventListener("click", closeEmergency);
+  els.emergencyOverlay.addEventListener("click", (e) => {
+    if (e.target === els.emergencyOverlay) closeEmergency();
+    const btn = e.target.closest("[data-em-action]");
+    if (!btn) return;
+    if (btn.dataset.emAction === "share") {
+      sharePharmacy(emState.list[emState.index]);
+    } else if (btn.dataset.emAction === "next") {
+      emState.index = (emState.index + 1) % emState.list.length;
+      renderEmergency();
+    }
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !els.emergencyOverlay.hidden) closeEmergency();
+  });
+
   els.searchInput.addEventListener("input", (e) => {
     state.query = e.target.value;
     els.clearSearch.hidden = !state.query;
@@ -434,6 +640,7 @@ function bindEvents() {
 
 async function init() {
   renderDate();
+  setInterval(renderDate, 60000); // geri sayım her dakika tazelenir
 
   // Son ziyaretteki il/ilçe seçimini geri yükle
   const pref = loadPrefs();
